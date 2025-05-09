@@ -1,0 +1,68 @@
+{
+  "source": {
+    "type": "postgresql",
+    "host": "db.example.com",
+    "port": 5432,
+    "database": "sales_db",
+    "table": "public.orders",
+    "user": "analyzer",
+    "password": "secure_password"
+  },
+  "transforms": [
+    {
+      "type": "filter",
+      "condition": "order_date >= '2023-01-01' AND order_status != 'CANCELLED'"
+    },
+    {
+      "type": "select",
+      "columns": ["order_id", "customer_id", "order_date", "total_amount", "payment_method"]
+    },
+    {
+      "type": "rename_column",
+      "rename_columns": {
+        "order_id": "id",
+        "customer_id": "cust_id",
+        "order_date": "date"
+      }
+    },
+    {
+      "type": "add_column",
+      "name": "order_month",
+      "expression": "date_format(date, 'yyyy-MM')"
+    },
+    {
+      "type": "join",
+      "right_source": {
+        "type": "postgresql",
+        "host": "db.example.com",
+        "port": 5432,
+        "database": "sales_db",
+        "table": "public.customers",
+        "user": "analyzer",
+        "password": "secure_password"
+      },
+      "join_type": "left",
+      "left_columns": ["cust_id"],
+      "right_columns": ["customer_id"]
+    },
+    {
+      "type": "select",
+      "columns": ["id", "cust_id", "date", "total_amount", "payment_method", "order_month", "customer_name", "customer_segment"]
+    },
+    {
+      "type": "groupby_agg",
+      "groupby_cols": ["order_month", "customer_segment", "payment_method"],
+      "aggregations": {
+        "total_amount": "sum",
+        "id": "count"
+      }
+    }
+  ],
+  "target": {
+    "type": "s3",
+    "access_key": "AKIAIOSFODNN7EXAMPLE",
+    "secret_key": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+    "bucket": "analytics-reports",
+    "path": "monthly_sales/segment_report/"
+  }
+}

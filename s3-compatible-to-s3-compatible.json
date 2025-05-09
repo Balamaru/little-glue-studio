@@ -1,0 +1,33 @@
+{
+  "source": {
+    "type": "s3_compatible",
+    "access_key": "minioadmin",
+    "secret_key": "minioadmin",
+    "bucket": "raw-data",
+    "path": "logs/app/",
+    "endpoint_url": "http://minio.local:9000"
+  },
+  "transforms": [
+    {
+      "type": "filter",
+      "condition": "status_code >= 400"
+    },
+    {
+      "type": "add_column",
+      "name": "is_error",
+      "expression": "status_code >= 500"
+    },
+    {
+      "type": "drop_column",
+      "columns": ["request_body", "response_body"]
+    }
+  ],
+  "target": {
+    "type": "s3_compatible",
+    "access_key": "minioadmin",
+    "secret_key": "minioadmin",
+    "bucket": "processed-data",
+    "path": "error-logs/",
+    "endpoint_url": "http://minio.local:9000"
+  }
+}

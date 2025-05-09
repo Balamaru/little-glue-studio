@@ -1,0 +1,28 @@
+{
+  "source": {
+    "type": "s3",
+    "access_key": "AKIAIOSFODNN7EXAMPLE",
+    "secret_key": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+    "bucket": "raw-data",
+    "path": "sales/2023/"
+  },
+  "transforms": [
+    {
+      "type": "filter",
+      "condition": "sales_amount > 100"
+    },
+    {
+      "type": "select",
+      "columns": ["transaction_id", "product_id", "sales_amount", "transaction_date"]
+    }
+  ],
+  "target": {
+    "type": "postgresql",
+    "host": "warehouse.example.com",
+    "port": 5432,
+    "database": "analytics",
+    "table": "filtered_sales",
+    "user": "etl_user",
+    "password": "secure_password"
+  }
+}

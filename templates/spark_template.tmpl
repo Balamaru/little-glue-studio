@@ -65,11 +65,7 @@ right_df = spark.read.format("jdbc") \
 {{end}}
 
 # Create join conditions
-join_condition =
-{{range $i, $lcol := $transform.LeftColumns}}
-{{$rcol := index $transform.RightColumns $i}}
-{{if $i}} & {{end}}(df["{{$lcol}}"] == right_df["{{$rcol}}"])
-{{end}}
+join_condition = {{range $i, $lcol := $transform.LeftColumns}}{{$rcol := index $transform.RightColumns $i}}{{if $i}} & {{end}}(df["{{$lcol}}"] == right_df["{{$rcol}}"]){{end}}
 
 # Apply join
 df = df.join(right_df, join_condition, "{{$transform.JoinType}}")
