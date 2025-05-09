@@ -1,0 +1,21 @@
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder.appName("Generated ETL Job").getOrCreate()
+
+df = spark.read.format("jdbc") \
+    .option("url", "jdbc:postgresql://{{ .Source.Host }}:{{ .Source.Port }}/{{ .Source.Database }}") \
+    .option("dbtable", "{{ .Source.Table }}") \
+    .option("user", "{{ .Source.User }}") \
+    .option("password", "{{ .Source.Password }}") \
+    .load()
+
+{{ range .Transforms }}
+{{ if eq .Type "filter" }}
+df = df.filter("{{ .Condition }}")
+{{ end }}
+{{ if eq .Type "select" }}
+df = df.select({{ range $i, $col := .Columns }}{{if $i}}, {{end}} "{{$col}}" {{end}})
+{{ end }}
+{{ end }}
+
+df.write.mode("overwrite").parquet("{{ .Target.Path }}")
